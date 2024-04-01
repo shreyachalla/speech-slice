@@ -64,6 +64,38 @@ def segment_audio(audio_path):
     # Return segmented audio
     return voiced_segments, unvoiced_segments
 
+def vector_embedding(audio_path):
+    # Load the audio file
+    y, sample_rate = librosa.load(audio_path)
+
+    # Segment the audio file into frames to be passed into 
+    time_frame = 20 # 20 msec
+    y_duration = len(y) / sample_rate
+    num_frames = y_duration * 1000 // time_frame
+    len_frame = time_frame * sample_rate
+    y_modified = y[0:num_frames * len_frame]
+
+    # Call a function which takes in y_modified and returns a jagged 2D array
+    # of dimension Nx(Txlen_frame) where N is number of words identified, T
+    # is number of frames in the longest identified word, and len_frame is
+    # the number of samples in a frame
+
+    mfcc_matrix = []
+    # Assuming the above described jagged 2d array is given by the variable all_words
+    for word_idx in range(len(all_words)):
+        word = all_words[word_idx]
+        n_mfcc = 13
+        hann_window = scipy.signals.window.hann(len_frame)
+        mfcc = librosa.feature.mfcc(y=y_modified, sr=sample_rate, n_mfcc=n_mfcc, hop_length = len_frame//4, win_length=len_frame, window=hann_window)
+        mfcc_matrix.append(mfcc)
+
+    # Now, perform the Dynamic Time Warping (DTW) on each word between itself and each of r reference words
+    # Given a word W, perform DTW(W, W_i) -> int for i=1,2,...,r.
+    # The end result is a vector of length r for each word W
+
+
+
+
 
 
 audio_path = 'test_name.wav'
