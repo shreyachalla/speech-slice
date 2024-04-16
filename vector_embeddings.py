@@ -9,24 +9,25 @@ class Vector_Embeddings(object):
     def __init__(self):
         pass
 
-    def embed_vector(self, signal, sample_rate):
+    def mfcc_dtw_embed(self, signal, sample_rate):
 
         # Some hyperparameters
-        time_frame = 500 # in msec
+        time_frame = 30 # in msec
         len_frame = time_frame * sample_rate // 1000
         len_signal = len(signal)
         num_frames = len_signal // len_frame
         basis_percentage = 0.75
-        max_dtw_dimensionality = 100 # Maximum number of dimensions the vectors should span after DTW
-        dtw_dimensionality = min(max_dtw_dimensionality, (int)(basis_percentage*num_frames))
+        # max_dtw_dimensionality = 100 # Maximum number of dimensions the vectors should span after DTW
+        # dtw_dimensionality = min(max_dtw_dimensionality, (int)(basis_percentage*num_frames))
+        dtw_dimensionality = (int)(basis_percentage*num_frames)
 
 
         # Now, the actual MFCC algorithm
-        n_mfcc = 7
+        n_mfcc = 39
         hann_window = scipy.signal.windows.hann(len_frame)
         mfcc_matrix = np.transpose(librosa.feature.mfcc(y=signal, sr=sample_rate, n_mfcc=n_mfcc, hop_length = (int)(len_frame*0.85), win_length=len_frame, window=hann_window, n_fft=len_frame))
-        mfcc_matrix = mfcc_matrix[:, 1:] # Removing very negative first MFCC coefficient
-        # mfcc_matrix = mfcc_matrix[:, 0:]
+        # mfcc_matrix = mfcc_matrix[:, 1:] # Removing very negative first MFCC coefficient
+        mfcc_matrix = mfcc_matrix[:, 0:]
 
         # Now, perform the Dynamic Time Warping (DTW) on each word between itself and each of r reference words
         # Given a word W, perform DTW(W, W_i) -> int for i=1,2,...,r.
@@ -55,3 +56,22 @@ class Vector_Embeddings(object):
                 """
             dtw_matrix.append(dtw_vector)
         return np.array(dtw_matrix)
+    
+
+    def mfcc_embed(self, signal, sample_rate):
+        # Some hyperparameters
+        time_frame = 30 # in msec
+        len_frame = time_frame * sample_rate // 1000
+        len_signal = len(signal)
+        num_frames = len_signal // len_frame
+        basis_percentage = 0.75
+        # max_dtw_dimensionality = 100 # Maximum number of dimensions the vectors should span after DTW
+        # dtw_dimensionality = min(max_dtw_dimensionality, (int)(basis_percentage*num_frames))
+        dtw_dimensionality = (int)(basis_percentage*num_frames)
+
+
+        # Now, the actual MFCC algorithm
+        n_mfcc = 39
+        hann_window = scipy.signal.windows.hann(len_frame)
+        mfcc_matrix = np.transpose(librosa.feature.mfcc(y=signal, sr=sample_rate, n_mfcc=n_mfcc, hop_length = (int)(len_frame*0.85), win_length=len_frame, window=hann_window, n_fft=len_frame))
+        return mfcc_matrix
