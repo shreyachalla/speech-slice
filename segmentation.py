@@ -5,24 +5,46 @@ from scipy.signal import find_peaks
 from scipy.signal import lfilter
 from scipy.integrate import simpson
 from scipy.stats import chi2
+from scipy.io import wavfile
 
 
 class Segmentation(object):
     def __init__(self) -> None:
         pass
 
-    # split the speech into windows for short time analysis 
-    def split_window_preemphasize(self, normalized_data, sample_rate, window_size_ms, overlap_ms, pre_emph_coef = 0.9, plot=False):
+    def input_and_plot(self, file_path, plot):
+        # take input 
+        sample_rate, audio_data = wavfile.read(file_path)
+    
+        time = np.arange(0, len(audio_data)) / sample_rate
+
+        if plot: 
+            # plot the normalized speech signal
+            plt.figure(figsize=(10, 4))
+            plt.plot(time, audio_data, color='b')
+            plt.xlabel('Time (s)')
+            plt.ylabel('Amplitude')
+            plt.title('Input Speech Signal')
+            plt.grid(True)
+            plt.show()
+
+        return audio_data, sample_rate
+
+
+    def split_window_preemphasize(self, audio_data, sample_rate, window_size_ms, overlap_ms, pre_emph_coef = 0.9, plot=False):
     
         # calculate samples
         window_size_samples = int(window_size_ms * sample_rate / 1000)
         overlap_size_samples = int(overlap_ms * sample_rate / 1000)
         window_step_samples = window_size_samples - overlap_size_samples
 
+        # normalize by using the maximum 
+        # rms normalization has the risk of clipping, so we choose max normalization
+        normalized_data = audio_data / np.max(np.abs(audio_data))  
         # split into short windows 
         split_signal = [] 
         start = 0
-        while start + window_size_samples <= len(normalized_data):
+        while start + window_size_samples <= len(audio_data):
             end = start + window_size_samples
             split_signal.append(librosa.effects.preemphasis(normalized_data[start:end], coef=pre_emph_coef))
             start += window_step_samples
@@ -39,18 +61,10 @@ class Segmentation(object):
             # plot the normal and the Hamming windowed signal 
             plt.figure(figsize=(10, 6))
 
-            # Original normalized signal
-            plt.subplot(2, 1, 1)
-            plt.plot(normalized_data)
-            plt.title('Normalized Signal')
-            plt.xlabel('Sample')
-            plt.ylabel('Amplitude')
-
-
             # Hamming windowed signal
             plt.subplot(2, 1, 2)
             plt.plot(hamming_windowed_signal)
-            plt.title('Hamming Windowed, Pre-Emphasized,Normalized Signal')
+            plt.title('Hamming Windowed, Pre-Emphasized, Normalized Signal')
             plt.xlabel('Sample')
             plt.ylabel('Amplitude')
             plt.tight_layout()
@@ -107,7 +121,6 @@ class Segmentation(object):
         return peakiness_segment_boundaries_samples
     
     
-
     def formant_segmentation(self, hamming_short_windows, sample_rate, formant_diff_threshold=0.2): 
 
         # use LPC to calculate formants 
@@ -138,26 +151,49 @@ class Segmentation(object):
         x = [i * len(hamming_short_windows[0]) for i in range(len(hamming_short_windows))]
         
         plt.figure(figsize=(10, 8))
+        plt.subplot(4, 1, 1)
         plt.title('Formant Based Segmentation')
         plt.xlabel('Sample')
         plt.ylabel('Amplitude')
 
         plt.plot(np.concatenate(hamming_short_windows))
-        plt.plot(x, [ i / 8000 for i in formant_frequencies[0]])
-        plt.plot(x, [ i / 8000 for i in formant_frequencies[1]])
-        plt.plot(x, [ i / 8000 for i in formant_frequencies[2]])
         formant_segment_boundaries_samples = [] 
         formants_at_boundaries = [] 
         for i in range(1, len(formant_frequencies[0])):
-            diff_1 = abs(formant_frequencies[0][i] - formant_frequencies[0][i-1]) / 8000
-            diff_2 = abs(formant_frequencies[1][i] - formant_frequencies[1][i-1]) / 8000
-            diff_3 = abs(formant_frequencies[2][i] - formant_frequencies[2][i-1]) / 8000
+            diff_1 = abs(formant_frequencies[0][i] - formant_frequencies[0][i-1]) / np.max(formant_frequencies[0])
+            diff_2 = abs(formant_frequencies[1][i] - formant_frequencies[1][i-1]) / np.max(formant_frequencies[1])
+            diff_3 = abs(formant_frequencies[2][i] - formant_frequencies[2][i-1]) / np.max(formant_frequencies[2])
             if diff_1 > formant_diff_threshold and diff_2 > formant_diff_threshold and diff_3 > formant_diff_threshold:
                 plt.axvline(x=i * len(hamming_short_windows[0]), color='r', linestyle='--')
                 formant_segment_boundaries_samples.append(i * len(hamming_short_windows[0]))
                 formants_at_boundaries.append([formant_frequencies[0][i], formant_frequencies[1][i], formant_frequencies[2][i]])
+
+        plt.subplot(4, 1, 2)
+        plt.title('Formant Based Segmentation, F1')
+        plt.xlabel('Sample')
+        plt.ylabel('Frequency (Hz)')
+        plt.plot(x, [ i for i in formant_frequencies[0]], color='c')
+        for i in formant_segment_boundaries_samples:
+            plt.axvline(x=i, color='r', linestyle='--')
+
+        plt.subplot(4, 1, 3)
+        plt.title('Formant Based Segmentation, F2')
+        plt.xlabel('Sample')
+        plt.ylabel('Frequency (Hz)')
+        plt.plot(x, [ i for i in formant_frequencies[1]], color='g')
+        for i in formant_segment_boundaries_samples:
+            plt.axvline(x=i, color='r', linestyle='--')
+
+        plt.subplot(4, 1, 4)
+        plt.title('Formant Based Segmentation, F3')
+        plt.xlabel('Sample')
+        plt.ylabel('Frequency (Hz)')
+        plt.plot(x, [ i for i in formant_frequencies[2]], color='m')
+        for i in formant_segment_boundaries_samples:
+            plt.axvline(x=i, color='r', linestyle='--')
+
+        plt.tight_layout()
         return formant_segment_boundaries_samples, formants_at_boundaries
-    
 
     def matusita_distance(self, pdf1, pdf2, x):
         integral = simpson(np.sqrt(pdf1 * pdf2), x=x)

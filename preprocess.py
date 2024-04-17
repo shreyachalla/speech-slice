@@ -6,35 +6,30 @@ import librosa
 '''
 TODO: Add method description 
 '''
-def normalize_and_plot(file_path, plot=False):
+def input_and_plot(file_path, plot=False):
 
     # take input 
     sample_rate, audio_data = wavfile.read(file_path)
-    
-    # normalize by using the maximum 
-    # rms normalization has the risk of clipping, so we choose max normalization 
-
-    # TODO: do this per window's max? 
-    normalized_data = audio_data / np.max(np.abs(audio_data))
+  
     time = np.arange(0, len(audio_data)) / sample_rate
 
     if plot: 
         # plot the normalized speech signal
         plt.figure(figsize=(10, 4))
-        plt.plot(time, normalized_data, color='b')
+        plt.plot(time, audio_data, color='b')
         plt.xlabel('Time (s)')
         plt.ylabel('Amplitude')
         plt.title('Input Speech Signal')
         plt.grid(True)
         plt.show()
 
-    return normalized_data, sample_rate
+    return audio_data, sample_rate
 
 
 '''
 TODO: description 
 '''
-def split_window_preemphasize(normalized_data, sample_rate, window_size_ms, overlap_ms, pre_emph_coef = 0.9, plot=False):
+def split_window_preemphasize(audio_data, sample_rate, window_size_ms, overlap_ms, pre_emph_coef = 0.9, plot=False):
    
     # calculate samples
     window_size_samples = int(window_size_ms * sample_rate / 1000)
@@ -44,9 +39,13 @@ def split_window_preemphasize(normalized_data, sample_rate, window_size_ms, over
     # split into short windows 
     split_signal = [] 
     start = 0
-    while start + window_size_samples <= len(normalized_data):
+    while start + window_size_samples <= len(audio_data):
+          
+        # normalize by using the maximum 
+        # rms normalization has the risk of clipping, so we choose max normalization 
         end = start + window_size_samples
-        split_signal.append(librosa.effects.preemphasis(normalized_data[start:end], coef=pre_emph_coef))
+        normalized_data = audio_data[start:end] / np.max(np.abs(audio_data[start:end]))
+        split_signal.append(librosa.effects.preemphasis(normalized_data, coef=pre_emph_coef))
         start += window_step_samples
     
     # apply Hamming window to each short window 
@@ -60,15 +59,7 @@ def split_window_preemphasize(normalized_data, sample_rate, window_size_ms, over
     if plot: 
         # plot the normal and the Hamming windowed signal 
         plt.figure(figsize=(10, 6))
-
-        # Original normalized signal
-        plt.subplot(2, 1, 1)
-        plt.plot(normalized_data)
-        plt.title('Normalized Signal')
-        plt.xlabel('Sample')
-        plt.ylabel('Amplitude')
-
-
+        
         # Hamming windowed signal
         plt.subplot(2, 1, 2)
         plt.plot(hamming_windowed_signal)
