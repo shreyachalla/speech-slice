@@ -62,16 +62,17 @@ class Vector_Embeddings(object):
         # Some hyperparameters
         time_frame = 30 # in msec
         len_frame = time_frame * sample_rate // 1000
-        len_signal = len(signal)
-        num_frames = len_signal // len_frame
-        basis_percentage = 0.75
-        # max_dtw_dimensionality = 100 # Maximum number of dimensions the vectors should span after DTW
-        # dtw_dimensionality = min(max_dtw_dimensionality, (int)(basis_percentage*num_frames))
-        dtw_dimensionality = (int)(basis_percentage*num_frames)
-
-
         # Now, the actual MFCC algorithm
         n_mfcc = 39
         hann_window = scipy.signal.windows.hann(len_frame)
         mfcc_matrix = np.transpose(librosa.feature.mfcc(y=signal, sr=sample_rate, n_mfcc=n_mfcc, hop_length = (int)(len_frame*0.85), win_length=len_frame, window=hann_window, n_fft=len_frame))
         return mfcc_matrix
+    
+
+
+    def mfcc_custom_embed(self, signal, sample_rate):
+        len_frame = len(signal)
+        n_mfcc = 39
+        hann_window = scipy.signal.windows.hann(len_frame)
+        mfcc_row = np.transpose(librosa.feature.mfcc(y=signal, sr=sample_rate, n_mfcc=n_mfcc, hop_length=len_frame, win_length=len_frame, window=hann_window, n_fft=len_frame))
+        return mfcc_row
