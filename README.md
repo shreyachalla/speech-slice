@@ -9,3 +9,4 @@ In order to run the files in this repository, you will need to ensure you have t
 8) dtw
 9) sklearn.cluster.dbscan
 10) sklearn.decomposition.pca
+11) allosaurus
