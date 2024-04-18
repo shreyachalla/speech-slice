@@ -104,6 +104,7 @@ class Segmentation(object):
         plt.subplot(2, 1, 1)
         plt.plot(x, normalized_peakiness, label='Normalized Peakiness')
         plt.plot(np.concatenate(hamming_short_windows), label='Normalized Hamming Windowed Signal')
+        plt.grid(True)
         plt.title('Normalized Peakiness Based Segmentation')
         plt.xlabel('Sample')
         plt.ylabel('Magnitude')
@@ -152,6 +153,7 @@ class Segmentation(object):
         
         plt.figure(figsize=(10, 8))
         plt.subplot(4, 1, 1)
+        plt.grid(True)
         plt.title('Formant Based Segmentation')
         plt.xlabel('Sample')
         plt.ylabel('Amplitude')
@@ -226,9 +228,11 @@ class Segmentation(object):
         norm_matusita_distances = [abs(i / abs(max(matusita_distances, key=abs))) for i in matusita_distances]
 
         x = [i * len(hamming_short_windows[0]) for i in range(len(hamming_short_windows))]
-        plt.figure(figsize=(8, 6))
+       
+        plt.figure(figsize=(10, 4))
         plt.plot(x, norm_matusita_distances, label="Matusita Distance")
         plt.plot(np.concatenate(hamming_short_windows), label="Hamming Windowed Signal")
+        plt.grid(True)
         plt.legend()
         plt.xlabel('Samples')
         plt.ylabel('Magnitude')
@@ -271,6 +275,7 @@ class Segmentation(object):
         teager_energy = [value / max(teager_energy) for value in teager_energy]
         energy_segment_boundaries_samples = [] 
         plt.figure(figsize=(10, 8))
+        plt.grid(True)
         plt.title('Teager Energy Based Segmentation')
         plt.xlabel('Sample')
         plt.ylabel('Amplitude')
