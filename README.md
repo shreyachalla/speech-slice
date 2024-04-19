@@ -27,3 +27,5 @@ Spring 2024, DSP for Speech Synthesis, Georgia Tech
 - allosaurus
 - scipy
   
+## To Run:
+Create a python file or notebook, add the line `from segmentation import *` and use any of the methods detailed in the segmentation.py file. 
