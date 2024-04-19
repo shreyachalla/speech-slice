@@ -7,13 +7,22 @@ from scipy.integrate import simpson
 from scipy.stats import chi2
 from scipy.io import wavfile
 
+''' 
+Segmentation class that holds the metrics and statistics based segmentations. See demo.ipynb for exmaples of use. 
+'''
 
 class Segmentation(object):
     def __init__(self) -> None:
         pass
 
+    '''
+    Plot input audio signal. 
+    Parameters:
+    file_path: input .wav file 
+    plot: boolean flag whether or not to plot
+    '''
     def input_and_plot(self, file_path, plot):
-        # take input 
+        # take input and plot versus time 
         sample_rate, audio_data = wavfile.read(file_path)
     
         time = np.arange(0, len(audio_data)) / sample_rate
@@ -30,7 +39,15 @@ class Segmentation(object):
 
         return audio_data, sample_rate
 
-
+    '''
+    Divide into short time windows, preemphasize, normalize. 
+    Parameters:
+    audio_data: input .wav file 
+    window_size_ms: length of short windows 
+    overlap_ms: overlap of short windows 
+    pre_emph_coef: for use in pre-emphasis 
+    plot: boolean flag whether or not to plot
+    '''
     def split_window_preemphasize(self, audio_data, sample_rate, window_size_ms, overlap_ms, pre_emph_coef = 0.9, plot=False):
     
         # calculate samples
@@ -55,8 +72,7 @@ class Segmentation(object):
 
         # concatenate all the windows to one signal that has been Hamming windowed
         hamming_windowed_signal = np.concatenate(hamming_short_windows)
-
-        # TODO: plot vertical lines to indicate short window boundaries 
+ 
         if plot: 
             # plot the normal and the Hamming windowed signal 
             plt.figure(figsize=(10, 6))
@@ -71,7 +87,12 @@ class Segmentation(object):
 
         return hamming_short_windows, hamming_windowed_signal
 
-
+    '''
+    Autocorrelation peakiness segmentation. 
+    Parameters:
+    hamming_short_windows: short time windows list 
+    peakiness_threshold: how to qualify a segment boundary 
+    '''
     def peakiness_segmentation(self, hamming_short_windows, peakiness_threshold=0.6):
         rms_peak_heights = []
         max_peak_heights = []
@@ -121,7 +142,13 @@ class Segmentation(object):
         # return the samples where boundaries were identified 
         return peakiness_segment_boundaries_samples
     
-    
+    '''
+    Formant segmentation. 
+    Parameters:
+    hamming_short_windows: short time windows list 
+    sample_rate 
+    formant_diff_threshold: how to qualify a segment boundary 
+    '''
     def formant_segmentation(self, hamming_short_windows, sample_rate, formant_diff_threshold=0.2): 
 
         # use LPC to calculate formants 
@@ -158,6 +185,7 @@ class Segmentation(object):
         plt.xlabel('Sample')
         plt.ylabel('Amplitude')
 
+        # plot if the differences meet specified threshold 
         plt.plot(np.concatenate(hamming_short_windows))
         formant_segment_boundaries_samples = [] 
         formants_at_boundaries = [] 
@@ -197,10 +225,23 @@ class Segmentation(object):
         plt.tight_layout()
         return formant_segment_boundaries_samples, formants_at_boundaries
 
+    '''
+    Compute Matusita distance.
+    Parameters:
+    pdf1, pdf2: pdfs of 2 distributions  
+    x: x-values 
+    '''
     def matusita_distance(self, pdf1, pdf2, x):
         integral = simpson(np.sqrt(pdf1 * pdf2), x=x)
         return 1 - integral 
+    
 
+    '''
+    Matusita distance segmentation. 
+    Parameters:
+    hamming_short_windows: short time windows list  
+    matusita_threshold: how to qualify a segment boundary 
+    '''
     def matusita_dist_segmentation(self, hamming_short_windows, matusita_threshold=0.5):
         # https://www.csd.uoc.gr/~tziritas/papers/SpeechMusicEusipco.pdf 
         pdfs = [] 
@@ -246,7 +287,6 @@ class Segmentation(object):
 
 
         matusita_distance_segment_boundaries_samples = []
-        # TODO: find the time instant where two successive frames are located before and after this instant have the maximum distance 
         for i in indices_above_threshold:
             plt.axvline(x=i * len(hamming_short_windows[0]), color='r', linestyle='--')
             matusita_distance_segment_boundaries_samples.append(i * len(hamming_short_windows[0]))
@@ -256,7 +296,12 @@ class Segmentation(object):
         return matusita_distance_segment_boundaries_samples
     
 
-
+    '''
+    Teager energy segmentation. 
+    Parameters:
+    hamming_short_windows: short time windows list  
+    energy_threshold: how to qualify a segment boundary 
+    '''
     def teager_energy_segmentation(self, hamming_short_windows, energy_threshold=0.009): 
         teager_energy = []
 
@@ -291,8 +336,15 @@ class Segmentation(object):
         return energy_segment_boundaries_samples
     
 
-
-
+    '''
+    Fitting process segmentation. 
+    Parameters:
+    hamming_short_windows: short time windows list  
+    a: number of frames to compute J statistic on 
+    b: threshold for J statistic 
+    c: number of frames for which to find a barycenter boundary 
+    energy_threshold: how to qualify a segment boundary 
+    '''
     def fitting_proc_segmentation(self, hamming_short_windows, a=1, b=0.01, c=2):  
 
         # calculate J  
@@ -314,11 +366,10 @@ class Segmentation(object):
             else:
                 s.append(0)
 
-        p = 0
-        q = 3
         acc = [0] * len(s) 
+        # segment for c windows at a time 
         for n in range(a, len(hamming_short_windows) - a - c):
-            # compute f[n] for each n in the range (p, q)
+            # compute f[n] for c windows
             f_min = np.Inf
             min_index = 0  
         
@@ -341,7 +392,6 @@ class Segmentation(object):
         plt.figure(figsize=(10, 6))
         plt.plot(np.concatenate(hamming_short_windows))
 
-        # Find indices of nonzero values in new_acc and multiply by 220
         fitting_proc_segment_boundaries_samples = np.nonzero(new_acc)[0] * len(hamming_short_windows[0])
 
         # Plot vertical lines at the calculated indices
