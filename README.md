@@ -28,4 +28,4 @@ Spring 2024, DSP for Speech Synthesis, Georgia Tech
 - scipy
   
 ## To Run:
-Create a python file or notebook, add the line `from segmentation import *` and use any of the methods detailed in the segmentation.py file. 
+Create a Python file or notebook in the same directory level as segmentation.py, add the line `from segmentation import *` and use any of the methods detailed in the segmentation.py file. 
