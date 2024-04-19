@@ -1,12 +1,29 @@
-In order to run the files in this repository, you will need to ensure you have the following libraries installed:
-1) Numpy
-2) Librosa
-3) SoundDevice
-4) Scipy
-5) Matplotlib
-6) Pandas
-7) Plotly
-8) dtw
-9) sklearn.cluster.dbscan
-10) sklearn.decomposition.pca
-11) allosaurus
+# SpeechSlice: Speech Segmentation Investigations
+Shreya Challa, Abdulrahman Tabbaa, Neoklis Vaindirlis 
+Spring 2024, DSP for Speech Synthesis, Georgia Tech 
+
+[Demo Video](https://youtu.be/VLSmG2tNT2Q)
+## Overview of functionality 
+### Metrics Based Segmentation
+- Formant Frequencies
+- Autocorrelation Peaks
+- Teager Energy
+- Short Term Energy
+- Zero Crossing Rate
+
+### Unsupervised Learning Based Segmentation 
+### Attaching timestamps to Allosaurus, a pretrained segmentation model 
+
+## Required Packages and Installations
+- Numpy
+- Librosa
+- SoundDevice
+- Matplotlib
+- Pandas
+- Plotly
+- dtw
+- sclearn.dbscan
+- skleard.decomposition.pca
+- allosaurus
+- scipy
+  
