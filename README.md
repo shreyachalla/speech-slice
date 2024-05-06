@@ -1,5 +1,5 @@
 # SpeechSlice: Speech Segmentation Investigations
-Shreya Challa, Abdulrahman Tabbaa, Neoklis Vaindirlis 
+Shreya Challa, Abdulrahman Tabbaa, Neoklis Vaindirlis <br> 
 Spring 2024, DSP for Speech Synthesis, Georgia Tech 
 
 [Demo Video](https://youtu.be/VLSmG2tNT2Q)
