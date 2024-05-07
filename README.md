@@ -2,7 +2,8 @@
 Shreya Challa, Abdulrahman Tabbaa, Neoklis Vaindirlis <br> 
 Spring 2024, DSP for Speech Synthesis, Georgia Tech 
 
-[Demo Video](https://youtu.be/VLSmG2tNT2Q)
+[Demo Video](https://youtu.be/VLSmG2tNT2Q) <br>
+[Paper](https://drive.google.com/file/d/1CAmtOiyZTvtgJZBLD-5LJOQtTDLVyRLC/view?usp=sharing) 
 ## Overview of functionality 
 ### Metrics Based Segmentation
 - Formant Frequencies
